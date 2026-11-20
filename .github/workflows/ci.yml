@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: swift --version
+      - name: Test
+        run: swift test
+      - name: Build app bundle
+        run: ./build.sh --no-install
+      - name: Render UI previews
+        run: |
+          B=$(swift build -c release --show-bin-path)/AudioRouter
+          $B --render-preview preview-dark.png --dark
+          $B --render-preview preview-light.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ui-previews
+          path: preview-*.png
