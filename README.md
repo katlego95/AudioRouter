@@ -153,27 +153,6 @@ sequenceDiagram
     end
 ```
 
-### 🧱 SOLID, concretely
-
-| Principle | Where |
-|---|---|
-| **S**ingle responsibility | `RoutePlanner` only decides; `RouterEngine` only orchestrates; `ProcessTapRoute` only owns one tap; `ChannelMixer` only copies samples. |
-| **O**pen/closed | New output strategies (e.g. a volume-per-app route) are new `RouteFactory` types; the engine doesn't change. |
-| **L**iskov substitution | Fakes in `Tests/` and demo types in `DemoData.swift` stand in for real Core Audio with identical engine behaviour. |
-| **I**nterface segregation | Four small ports instead of one "AudioManager" protocol. |
-| **D**ependency inversion | `RouterEngine` depends on protocols; only `AppEnvironment` knows concrete types. |
-
-### 🔒 ACID, for your settings and routes
-
-Not a database, but the same guarantees where they matter:
-
-| | Guarantee | How | Test |
-|---|---|---|---|
-| **A**tomic | A choice is fully applied or not at all. A route is fully built or fully torn down. | Save-before-apply in `assign`; `ProcessTapRoute.init` rolls back on any failure; `Data.write(.atomic)` | `failedSaveRollsBackTheWholeChange`, `saveReplacesFileAtomically` |
-| **C**onsistent | At most one route per app; routes only exist for running apps on present devices; settings file is versioned and validated. | `RoutePlanner` invariants; corrupt files are quarantined, newer formats are never overwritten | `RoutePlannerTests`, `corruptFileIsQuarantinedAndReported` |
-| **I**solated | No data races between UI, polling and audio. | All state is `@MainActor`; the real-time thread only runs `ChannelMixer` on buffers it's handed. Swift 6 strict concurrency enforces it at compile time. | compiler |
-| **D**urable | Choices survive quit, crash and reboot. | Written to `~/Library/Application Support/AudioRouter/assignments.json` *before* use | `savedChoicesAreRestoredOnLaunch` |
-
 ### 🗂️ Project map
 
 ```
